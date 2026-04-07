@@ -43,7 +43,7 @@ def _parse_meeting_end(raw_date, current_year, month_num):
 
 def build_url(date_str: str):
     year = int(date_str[:4])
-    if year <= 1994:
+    if year <= 1995:
         return f"https://www.federalreserve.gov/fomc/MINUTES/{year}/{date_str}min.htm"
     elif year <= 2007:
         return f"https://www.federalreserve.gov/fomc/minutes/{date_str}.htm"
@@ -399,6 +399,11 @@ class DB_Manager():
         for s in stats:
             print(f"{s['_id']}: {s['doc_count']} docs, avg {s['avg_word_count']:.0f} words")
 
+    def set_scrape(self, year):
+        self.metadata.update_many(
+            {"year": year},
+            {"$set": {"scraped": False}}
+            )
 
     def debug_html_structure(self, url):
         print(url)
@@ -427,9 +432,9 @@ class DB_Manager():
 
 db_manager = DB_Manager()
 #db_manager.get_meeting_dates_from_calendar(2011,2020)
-
 #db_manager.get_minute_docs()
 db_manager.get_minutes_stats()
+
 
 
 #https://www.federalreserve.gov/fomc/MINUTES/1994/19940204min.htm

@@ -1,6 +1,5 @@
 1993: 8 docs, avg 8402 words
 1994: 8 docs, avg 7630 words
-1995: 8 docs, avg 285 words
 1996: 8 docs, avg 25380 words
 1997: 8 docs, avg 61136 words
 1998: 8 docs, avg 83750 words
@@ -32,3 +31,4 @@
 2024: 8 docs, avg 6126 words
 2025: 8 docs, avg 7379 words
 2026: 8 docs, avg 1067 words
+1995: 8 docs, avg 6912 words
