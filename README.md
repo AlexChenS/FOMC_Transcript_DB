@@ -1,2 +1,2 @@
 # DS4300_HW6
-Analysis of FOMC meeting transcripts with MongoDB
+A document store of FOMC meeting transcripts with MongoDB
