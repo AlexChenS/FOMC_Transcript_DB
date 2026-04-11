@@ -97,6 +97,7 @@ class DB_Manager():
 
         self.metadata.create_index([("meeting_date", pymongo.ASCENDING)], unique=True)
         self.minutes_raw.create_index([("meeting_date", pymongo.ASCENDING)], unique=True)
+        self.minutes_raw.create_index([("raw_text", pymongo.TEXT)])
 
     def get_meeting_dates_from_calendar(self, start_year, end_year):
 
@@ -429,15 +430,34 @@ class DB_Manager():
         ]
 
         return list(self.metadata.aggregate(pipeline))
+    
+    def get_keyword_count(self, *args):
+        result = {}
+        start = time.time()
+        for keyword in args:
+            pipeline = [
+                {"$match": {"$text": {"$search": f'"{keyword}"'}}},
+                {"$group": {"_id": None, "count": {"$sum": 1}}}
+            ]
+            docs = list(self.minutes_raw.aggregate(pipeline))
+            result[keyword] = docs[0]["count"] if docs else 0
+
+        fin = time.time()
+        for k, v in result.items():
+            print(f"{k} appeared in {v} docs\n")
+        print(f"Text index query for {len(args)} terms took {(fin - start):4f} seconds\n")
+        return result
 
 db_manager = DB_Manager()
 #db_manager.get_meeting_dates_from_calendar(2011,2020)
 #db_manager.get_minute_docs()
-db_manager.get_minutes_stats()
+#db_manager.get_minutes_stats()
+
+db_manager.get_keyword_count("high inflation", "low inflation", \
+                             "high unemployment", "low unemployment",\
+                            )
 
 
-
-#https://www.federalreserve.gov/fomc/MINUTES/1994/19940204min.htm
 
 
 
