@@ -41,6 +41,7 @@ nlp = spacy.load("en_core_web_sm", disable=["ner", "parser"])
 STOPWORDS = set(nltk.data.find('corpora/stopwords'))
 STOPWORDS = STOPWORDS | FOMC_STOPWORDS
 
+topic_num_TO_words = {3: "Post Crisis Response", 2: "Operational", 1:"Economic Downturn", 0:"Economic Growth"}
 
 def parse_meeting_end(raw_date, current_year, month_num):
     """Parse a raw date string into a datetime for the last day of a meeting
@@ -781,12 +782,38 @@ class DB_Manager():
         Return:
             None
         """
+        
         pipeline = [
         {"$group": {"_id": "$dominant_topic", "count": {"$sum": 1}}},
         {"$sort": {"_id": 1}}
         ]
         for doc in self.minutes_clean.aggregate(pipeline):
-            print(f"Topic {doc['_id']}: {doc['count']} documents")
+            print(f"Topic {topic_num_TO_words[doc['_id']]}: {doc['count']} documents")
+
+    def show_topic_by_year(self):
+        """Print the dominant topic per year
+        
+        Args:
+            None
+
+        Return:
+            None
+        """
+        pipeline = [
+            {"$group": {
+                "_id": {"year": "$year", "topic": "$dominant_topic"},
+                "count": {"$sum": 1}
+            }},
+            {"$sort": {"count": -1}},
+            {"$group": {
+                "_id": "$_id.year",
+                "most_common_topic": {"$first": "$_id.topic"},
+                "count": {"$first": "$count"}
+            }},
+            {"$sort": {"_id": 1}}
+        ]
+        for doc in self.minutes_clean.aggregate(pipeline):
+            print(f"{doc['_id']}: {topic_num_TO_words[doc['most_common_topic']]}")
 
     def visualize_lda(self, lda_model, corpus, dictionary):
         """Generate an interactive pyLDAvis visualization and save it as an HTML file
@@ -822,12 +849,12 @@ if __name__ == '__main__':
     '''
     
     #db_manager.tokenize_corpus()
-    bigram_docs = db_manager.get_bigrams()
-    model, dictionary, corpus = fit_lda(bigram_docs, num_topics=4)
+    #bigram_docs = db_manager.get_bigrams()
+    #model, dictionary, corpus = fit_lda(bigram_docs, num_topics=4)
     #db_manager.store_lda_results(model, dictionary=dictionary, corpus=corpus, bigram_docs=bigram_docs)
     db_manager.show_docs_by_topic()
-    db_manager.visualize_lda(model, corpus=corpus, dictionary=dictionary)
-
+    #db_manager.visualize_lda(model, corpus=corpus, dictionary=dictionary)
+    #db_manager.show_topic_by_year()
     
 #93-94 format: "https://www.federalreserve.gov/fomc/MINUTES/{year}/{date}min.htm"
 #95-07 format: https://www.federalreserve.gov/fomc/minutes/{date}.htm
